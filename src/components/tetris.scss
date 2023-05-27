@@ -1,0 +1,81 @@
+.tetris {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: 'left right';
+
+       &-section_left {
+        grid-area: 'left';      
+       }
+   
+       &-section_right {
+        grid-area: 'right';
+        display: flex;
+        flex-flow: column nowrap;
+       }
+
+       &-board {
+        position: relative;
+        display: grid;
+        width: 50rem;
+        height: 90vh;
+        background-color: rgb(32, 0, 64);
+        border: 1rem solid rgb(32, 0, 64);
+        box-shadow: rgba(0, 0, 0, .4) 0 .5rem 1.5rem;
+
+        &-cell {
+         width: auto;
+         height: 100%;
+         border-radius: .6rem;
+         position: relative;  
+        }
+    }
+}
+
+.btn-start-tetris {
+    margin-top: 1rem;
+    height: 3rem;
+    border-radius: 1rem;
+}
+
+
+// TETRAMINOES
+
+
+.tetromino {
+    border-top: .3rem solid rgba(255, 255, 255, .1);
+    border-left: .3rem solid rgba(255, 255, 255, .1);
+    border-bottom: .3rem solid rgba(0, 0, 0, .1);
+    border-right: .3rem solid rgba(0, 0, 0, .1);
+
+    &-l {
+     background-color: #2112ED;
+    }
+
+    &-i {
+     background-color: #12EDE2;
+    }
+
+    &-j {
+     background-color: #ED9512;
+    }
+
+    &-s {
+     background-color: #32ED12;
+    }
+
+    &-t {
+     background-color: #9412ED;
+    }
+
+    &-z {
+     background-color: #ED1212; 
+    }
+
+    &-o {
+     background-color: #EDE012;
+    }
+
+}
+
