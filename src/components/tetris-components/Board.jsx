@@ -1,51 +1,70 @@
-import React, { useEffect } from 'react'
-import { tetrisStore } from '../../hooks/tetrisStore';
-import { isObjectEmpty } from '../../logic/functional';
+import React, { useEffect } from "react";
+import { tetrisStore } from "../../hooks/tetrisStore";
+import { isObjectEmpty } from "../../logic/functional";
+import { BoardCell } from "./BoardCell";
+import { useBoard } from "../../hooks/useBoard";
+import { useTetromino } from "../../hooks/useTetromino";
+import { checkCollision, placeTetromino, moveTetromino, moves } from "../../logic/tetrominoes";
+import { useInterval } from "../../hooks/useInterval";
 
+function Board({ isGameGoing, tetromino }) {
+  const { goOnTheGame, setCurrentTetromino } = tetrisStore();
+  const isTetrominoOnBoard = tetrisStore((state) => state.isNotCollidedTetrominoOnBoard);
+  const [board, setBoard] = useBoard(15, 10);
+  const position = { x: 4, y: 0 }
+  const [curTetromino, setTetromino] = useTetromino();
+  // console.log(tetromino)
 
-export const BoardCell = ({ cell }) => 
-<div className={`tetris-board-cell ${cell?.className || ''}`}></div>
-
-function Board({ board, isGameGoing, currentTetromino }) {
-  const { goOnTheGame, slayTetrominoDown,  currentTetrominoOnBoard } = tetrisStore();
   useEffect(() => {
-     if (!isObjectEmpty(currentTetromino)) {
-      console.log(currentTetromino)
-      console.log(currentTetrominoOnBoard)
-      slayTetrominoDown(1)
+    //  console.log('tetromino:', tetromino)
+     if (isGameGoing && !isTetrominoOnBoard && !isObjectEmpty(tetromino)) {
+      const collision = checkCollision(tetromino, board, {x: position.x, y: position.y + 1});
+      if (!collision) {
+        setCurrentTetromino()
+        const newBoard = placeTetromino( tetromino, board, position );
+        setBoard(newBoard)
+      }
      }
-  }, [currentTetromino, currentTetrominoOnBoard])
-  
-  const handleClick = () => goOnTheGame(); 
+  }, [isGameGoing, tetromino])
 
-    const boardStyles = {
-      gridTemplateRows: `repeat(${board.size.rows}, 1fr)`,
-      gridTemplateColumns: `repeat(${board.size.columns}, 1fr)`
-    };
+  useInterval(() => {
+    if (isTetrominoOnBoard && !isObjectEmpty(tetromino)) {
+      const collision = checkCollision(tetromino, board, {x: position.x, y: position.y + 1});
+      if (!collision) {
+        const newBoard = moveTetromino(tetromino, board, moves.moveDown);
+        setBoard(newBoard)
+      }
+    }
+  }, 1000);
   
+  const handleClick = () => goOnTheGame();
+
+  const boardStyles = {
+    gridTemplateRows: `repeat(${board.size.rows}, 1fr)`,
+    gridTemplateColumns: `repeat(${board.size.columns}, 1fr)`,
+  };
+
   return (
-   <>
-       <div className='tetris-board' style={boardStyles}>
-        {board.rows.map(( row, y ) => row.map((cell, x) => (
-       <BoardCell key={x * board.size.columns + x} cell={cell} />
-      ))
-      )}
-      
+    <>
+      <div className="tetris-board" style={boardStyles}>
+        {board.rows.map((row, y) =>
+          row.map((cell, x) => (
+            <BoardCell key={x * board.size.columns + x} cell={cell} />
+          ))
+        )}
       </div>
-      
-      <div className='tetris-board-btn'>
-      {isGameGoing ?
-       (<p>it's happening</p>) :
-       <button 
-       className="btn btn-start-tetris"
-       onClick={handleClick}
-       >
-        play me
-       </button>
-        }
+
+      <div className="tetris-board-btn">
+        {isGameGoing ? (
+          <p>it's happening</p>
+        ) : (
+          <button className="btn btn-start-tetris" onClick={handleClick}>
+            play me
+          </button>
+        )}
       </div>
     </>
-  )
+  );
 }
 
-export default Board
+export default Board;

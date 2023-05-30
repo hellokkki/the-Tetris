@@ -1,38 +1,51 @@
-import React, { useEffect, useState } from 'react'
-import Board from './tetris-components/Board'
-import './tetris.scss'
-import { tetrisStore } from '../hooks/tetrisStore'
-
+import React, { useEffect, useState } from "react";
+import Board from "./tetris-components/Board";
+import "./tetris.scss";
+import { tetrisStore } from "../hooks/tetrisStore";
+import { Queue } from "../logic/queue";
+import { pickRandomTetromino } from "../logic/tetrominoes";
+import { useQueue } from "../hooks/useQueue";
+import { useTetromino } from "../hooks/useTetromino";
+import { isObjectEmpty } from "../logic/functional";
 
 function Tetris() {
+  const  isGameGoing  = tetrisStore((state) => state.isGameGoing);
+  const [tetromino, setTetromino] = useTetromino();
+  const [queue, setQueue] = useQueue(1000);
 
-  const { isGameGoing, nextTetromino, board, placeTetromino } = tetrisStore();
-  const [currentTetromino, setCurrentTetramino] = useState();
+  useEffect(() => {
+     if ( isGameGoing === true ) {
+      const trashQueue = new Queue(queue.size)
+      while (trashQueue.length < trashQueue.size) {
+        const randomTetromino = pickRandomTetromino()
+        trashQueue.enqueue(randomTetromino);
+      }
+      setQueue(trashQueue)
+     }
+  }, [isGameGoing])
 
- useEffect(() => {
-    if (isGameGoing)  setCurrentTetramino(nextTetromino || {})
- }, [isGameGoing, nextTetromino]);
 
- useEffect(() => {
-   const startPos = { x: 4, y: 0 };
-   console.log(currentTetromino)
-   if (currentTetromino) placeTetromino(currentTetromino, startPos.x, startPos.y)
- }, [currentTetromino, placeTetromino])
-  
+  useEffect(() => {
+    if ( isGameGoing 
+      && !queue.isEmpty()
+      && isObjectEmpty(tetromino) ) {
+      const tetromino = queue.dequeue();
+      setTetromino(tetromino);
+    }
+  }, [queue])
+
 
   return (
-    <div className='tetris'>
+    <div className="tetris">
       <div className="tetris-section_left">
-      <Board 
-      board={board} 
-      isGameGoing={isGameGoing}
-      currentTetromino={currentTetromino || {}}/>
+        <Board
+          isGameGoing={isGameGoing}
+          tetromino={tetromino}
+        />
       </div>
-      <div className="tetris-section-right">
-
-      </div>
+      <div className="tetris-section-right"></div>
     </div>
-  )
+  );
 }
 
-export default Tetris
+export default Tetris;

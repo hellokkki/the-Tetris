@@ -14,4 +14,4 @@ export const buildBoard = ({ rows, columns }) => {
         rows: buildRows,
         size: { rows, columns }
     }
-}
+};
