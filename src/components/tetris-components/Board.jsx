@@ -1,41 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { tetrisStore } from "../../hooks/tetrisStore";
 import { isObjectEmpty } from "../../logic/functional";
 import { BoardCell } from "./BoardCell";
-import { useBoard } from "../../hooks/useBoard";
-import { useTetromino } from "../../hooks/useTetromino";
-import { checkCollision, placeTetromino, moveTetromino, moves } from "../../logic/tetrominoes";
-import { useInterval } from "../../hooks/useInterval";
 
-function Board({ isGameGoing, tetromino }) {
-  const { goOnTheGame, setCurrentTetromino } = tetrisStore();
-  const isTetrominoOnBoard = tetrisStore((state) => state.isNotCollidedTetrominoOnBoard);
-  const [board, setBoard] = useBoard(15, 10);
-  const position = { x: 4, y: 0 }
-  const [curTetromino, setTetromino] = useTetromino();
-  // console.log(tetromino)
 
-  useEffect(() => {
-    //  console.log('tetromino:', tetromino)
-     if (isGameGoing && !isTetrominoOnBoard && !isObjectEmpty(tetromino)) {
-      const collision = checkCollision(tetromino, board, {x: position.x, y: position.y + 1});
-      if (!collision) {
-        setCurrentTetromino()
-        const newBoard = placeTetromino( tetromino, board, position );
-        setBoard(newBoard)
-      }
-     }
-  }, [isGameGoing, tetromino])
-
-  useInterval(() => {
-    if (isTetrominoOnBoard && !isObjectEmpty(tetromino)) {
-      const collision = checkCollision(tetromino, board, {x: position.x, y: position.y + 1});
-      if (!collision) {
-        const newBoard = moveTetromino(tetromino, board, moves.moveDown);
-        setBoard(newBoard)
-      }
-    }
-  }, 1000);
+function Board({ isGameGoing, board }) {
+  const { goOnTheGame } = tetrisStore();
+  
   
   const handleClick = () => goOnTheGame();
 

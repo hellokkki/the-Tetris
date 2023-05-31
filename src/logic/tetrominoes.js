@@ -1,5 +1,7 @@
 import { tetrisStore } from "../hooks/tetrisStore";
+import { isObjectEmpty } from "./functional";
 const className = 'tetromino';
+const startPosition = { x:4, y: 0 };
 
 export const TETROMINOES = {
     I: {
@@ -9,7 +11,8 @@ export const TETROMINOES = {
             [0, 1, 0],
             [0, 1, 0]
         ],
-        className: `${className} ${className}-i`
+        className: `${className} ${className}-i`,
+        position: startPosition
     },
     J: {
         shape: [
@@ -17,7 +20,8 @@ export const TETROMINOES = {
             [0, 1, 0],
             [1, 1, 0]
         ],
-        className: `${className} ${className}-j`
+        className: `${className} ${className}-j`,
+        position: startPosition
     },
     L: {
         shape: [
@@ -25,28 +29,32 @@ export const TETROMINOES = {
             [0, 1, 0],
             [0, 1, 1]
         ],
-        className: `${className} ${className}-l`
+        className: `${className} ${className}-l`,
+        position: startPosition
     },
     O: {
         shape: [
            [1, 1],
            [1, 1]
         ],
-        className: `${className} ${className}-o`
+        className: `${className} ${className}-o`,
+        position: startPosition
     },
     S: {
        shape: [
         [0, 1, 1],
         [1, 1, 0]
        ],
-       className: `${className} ${className}-s`
+       className: `${className} ${className}-s`,
+       position: startPosition
      },
      Z: {
         shape: [
             [1, 1, 0],
             [0, 1, 1]
         ],
-        className: `${className} ${className}-z`
+        className: `${className} ${className}-z`,
+        position: startPosition
      },
      T: {
         shape: [
@@ -54,7 +62,8 @@ export const TETROMINOES = {
             [0, 1, 0],
             [1, 1, 1]
         ],
-        className: `${className} ${className}-t`
+        className: `${className} ${className}-t`,
+        position: startPosition
      }
 };
 
@@ -86,22 +95,26 @@ export const checkCollision = (tetromino, board,  { x: moveX, y: moveY }) => {
   return false
 };
 
-export const placeTetromino = (tetromino, board, position) => {
+export const placeTetromino = (tetromino, board) => {
     const newBoard = JSON.parse(JSON.stringify(board));
-    const { shape, className } = tetromino;
-    const { x, y } = position;
+    const { shape, className, position } = tetromino;
+    let { x, y } = position;
+
   
     newBoard.rows.forEach((row, rowIndex) =>
       row.forEach((cell, columnIndex) => {
         if (cell !== 0) {
           const tetrominoRow = shape[rowIndex - y];
+          if (tetrominoRow !== undefined) {
           if (tetrominoRow && tetrominoRow[columnIndex - x] === 1) {
             cell.occupied = true;
             cell.className = className;
           }
         }
+      }
       })
     );
+    
     return newBoard;
  };
 
@@ -167,70 +180,47 @@ export const placeTetromino = (tetromino, board, position) => {
 //     return newBoard;
 //  };
 
-export const moveTetromino = (tetromino, board, move) => {
+export function moveTetromino(tetromino, board, moveDirection) {
     const newBoard = JSON.parse(JSON.stringify(board));
-    const { shape, className } = tetromino;
-    const tetrominoHeight = shape.length;
-    const tetrominoWidth = shape[0].length;
-    console.log(tetrominoHeight)
-    let tetrominoNewPosition = { x: null, y: null };
-    let newX, newY;
-  
-    newBoard.rows.forEach((row, rowIndex) => {
-      row.forEach((cell, columnIndex) => {
-        if (cell.occupied && cell.className === className) {
-          tetrominoNewPosition = { x: columnIndex, y: rowIndex };
-        }
-      });
-    });
-  
-    if (tetrominoNewPosition.x !== null && tetrominoNewPosition.y !== null) {
-      newX = tetrominoNewPosition.x;
-      newY = tetrominoNewPosition.y;
-    } else {
-      return newBoard;
+    const { shape, className, position } = tetromino;
+    let { x, y } = position;
+    let newTetromino = {
+      shape,
+      className,
     }
-  
-    console.log(newX, newY)
-    console.log(move.x, move.y)
-    switch (move.direction) {
-      case "left":
-        newX = newX - move.x;
-        break;
-      case "right":
-        newX = newX + move.x;
-        break;
-      case "down":
-        newY = newY + move.y;
-        break;
+
+
+    newBoard.rows.forEach((row, rowIndex) => 
+    row.forEach((cell, columnIndex) => {
+    if (rowIndex !== null && columnIndex !== null) {
+        if (cell.occupied === true && cell.className === className) {
+          cell.occupied = false;
+          cell.className = "";
+        }
+    }
+    })
+    );
+ 
+    switch (moveDirection) {
+      case 'left':
+        newTetromino.position = { x: x - 1, y };
+        break
+      case 'right':
+        newTetromino.position = { x: x + 1, y };
+        case 'down':
+        newTetromino.position = { x, y: y + 1 }
       default:
         break;
     }
 
-    console.log(newX, newY)
-    if (checkCollision(tetromino, board, { x: newX, y: newY })) {
-        return newBoard
-    } else {
-        for (let i = 0; i < tetrominoHeight; i++) {
-            const tetrominoRow = shape[i];
-            const boardRow = newBoard.rows[i + newY];
-            for (let j = 0; j < tetrominoWidth; j++) {
-              const tetrominoCell = tetrominoRow[j];
-              if (tetrominoCell === 1) {
-                const boardCell = boardRow[j + newX];
-                if (boardCell.occupied) {
-                  // If there is a collision with another tetromino, return the original board
-                  return newBoard;
-                }
-                boardCell.occupied = true;
-                boardCell.className = className;
-              }
-            }
-          }
-    }
-  
-    return newBoard;
-  };
+    return placeTetromino(newTetromino, newBoard)
+}
+
+
+
+
+
+
   
 
  export const moves = {
