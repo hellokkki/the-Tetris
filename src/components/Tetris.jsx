@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Board from "./tetris-components/Board";
 import "./tetris.scss";
 import { tetrisStore } from "../hooks/tetrisStore";
@@ -17,58 +17,56 @@ function Tetris() {
   const { setCurrentTetromino, resetCurrentTetromino } = tetrisStore();
   const [board, setBoard] = useBoard(15, 10)
   const [tetromino, setTetromino, collision, moveTetromino] = useTetromino();
-  const [queue, setQueue] = useQueue(1000);
   const [stop, setStop] = useState(false)
 
   useEffect(() => {
-     if ( isGameGoing === true  ) {
-      const trashQueue = new Queue(queue.size)
-      while (trashQueue.length < trashQueue.size) {
-        const randomTetromino = pickRandomTetromino()
-        trashQueue.enqueue(randomTetromino);
-      }
-      setQueue(trashQueue)
-     }
-  }, [isGameGoing])
-
-
-  useEffect(() => {
     if ( isGameGoing 
-      && !queue.isEmpty()
-      && isObjectEmpty(tetromino)
-      && !isCurrentTetromino ) {
-        console.log(isCurrentTetromino)
-      const tetromino = queue.dequeue();
+      && isObjectEmpty(tetromino)) {
+      const tetromino = pickRandomTetromino();
       setTetromino(tetromino);
     }
-  }, [queue, isCurrentTetromino])
+  }, [isGameGoing, isObjectEmpty, tetromino, setTetromino])
 
   useEffect(() => {
-    if (isGameGoing && !isCurrentTetromino && !isObjectEmpty(tetromino)) {
+    if (!isCurrentTetromino && !isObjectEmpty(tetromino)) {
+    setCurrentTetromino()
     const collision = checkCollision(tetromino, board, {x: tetromino.position.x, y: tetromino.position.y + 1});
     if (!collision) {
-       setCurrentTetromino();
        const newBoard = placeTetromino( tetromino, board );
        setBoard(newBoard)
-     }
     }
- }, [isGameGoing, tetromino])
-
-
-const stopInterval = useInterval(() => {
-  if (isCurrentTetromino) {
-    console.log(isCurrentTetromino)
-    // const collision = checkCollision(tetromino, board, {x: tetromino.position.x, y: tetromino.position.y + 1});
-    if (collision) {
-      stopInterval()
-      resetCurrentTetromino()
-      setTetromino({})
-    } else {
-     const newBoard = moveTetromino(tetromino, board, "down");
-     setBoard(newBoard)
-    } 
   }
-}, 1000)
+ }, [isCurrentTetromino, isObjectEmpty, tetromino, placeTetromino, setBoard]);
+
+ const moveDown = useCallback(() => {
+   if (isCurrentTetromino) {
+     if (collision) {
+       setStop(true);
+       resetCurrentTetromino();
+       setTetromino({})
+     } else {
+      const newBoard = moveTetromino(tetromino, board, "down");
+      setBoard(newBoard)
+     }
+   }
+ }, [isCurrentTetromino, collision, setStop, resetCurrentTetromino, setTetromino, moveTetromino, setBoard])
+
+//  const stopInterval = useInterval(() => {
+//   if (stop) {
+//     stopInterval();
+//   } else {
+//     moveDown()
+//   }
+//  }, 1000)
+
+  const stopInterval = useInterval(moveDown, 1000);
+
+  useEffect(() => {
+    if (stop) {
+      console.log(tetromino)
+      stopInterval()
+    }
+  }, [stop, stopInterval]);
 
   return (
     <div className="tetris">

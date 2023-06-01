@@ -49,14 +49,14 @@ export const useTetromino = () => {
 
    
 
-   if (!isObjectEmpty(tetromino) ) {
-      const lastBoard = placeTetromino(tetromino, newBoard);
-     switch (checkCollision(tetromino, board, { x: x + 1, y: y + 1 })) {
+   if (!isObjectEmpty(newTetromino) ) {
+      const lastBoard = placeTetromino(newTetromino, newBoard);
+     switch (checkCollision(newTetromino, board, { x: newTetromino.position.x + 1, y: newTetromino.position.y + 1 })) {
       case true: 
       setCollision(true)
       return lastBoard
       case false: 
-      return placeTetromino(tetromino, newBoard);
+      return placeTetromino(newTetromino, newBoard);
      }
    }
    // if (!isObjectEmpty(tetromino) && checkCollision(tetromino, board, { x, y })) {
